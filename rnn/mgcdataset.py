@@ -3,7 +3,7 @@ import glob
 import math
 
 DIM=1100
-BATCH_SIZE=64
+BATCH_SIZE=1
 
 class MGCDataset:
 

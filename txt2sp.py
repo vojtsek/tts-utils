@@ -62,7 +62,7 @@ def main():
     if len(sys.argv) < 2:
         raise Exception("No .txt file provided.")
     # text = "Hi, I am Vojcek."
-    loc = "mary.wav"
+    loc = sys.argv[2]
     with open(sys.argv[1]) as f:
         for line in f.readlines():
             resp, content = send_txt(line)

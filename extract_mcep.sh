@@ -1,10 +1,11 @@
+#!/bin/bash
 BIN_PATH="bin"
 FRAMELEN=400
 FRAMESHIFT=80
 FFTLEN=512
 NORMALIZE=0
 MGCORDER=34
-FREQWARP=0.2
+FREQWARP=0.42
 
 # mgc path/to/wav
 base_fn=`basename $1`

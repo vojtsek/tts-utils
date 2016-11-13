@@ -1,9 +1,9 @@
 # arguments: natural_recordings/ synthetic_recordings/
 BIN_PATH="sptk/bin"
-FRAMELEN=50
-FRAMESHIFT=10
+FRAMELEN=300
+FRAMESHIFT=50
 FFTLEN=512
-NORMALIZE=0
+NORMALIZE=1
 MGCORDER=25
 FREQWARP=0.42
 
@@ -28,7 +28,7 @@ if [[ -z $3 ]]; then
         echo "${base_fn}" >> $LISTFILE
         echo "Comparing '$1/$fn' and '$2/$fn'"
         MCD=`cat $LISTFILE | xargs mcd/bin/get_mcd_dtw --param_order $MGCORDER $1 $2 | tail -n1 | cut -d " " -f4`
-        echo "$fn ${MCD}" >> $RESULTFILE
+        echo "$fn,${MCD}" >> $RESULTFILE
     done
 else
     for fn in $1/*.wav; do
@@ -40,7 +40,7 @@ else
         echo "${base_fn}" >> $LISTFILE
         echo "Comparing '$1/$fn' and '$2/$fn'"
         MCD=`cat $LISTFILE | xargs mcd/bin/get_mcd_dtw --param_order $MGCORDER $1 $2 | tail -n1 | cut -d " " -f4`
-        echo "$fn ${MCD}" >> $RESULTFILE
+        echo "$fn,${MCD}" >> $RESULTFILE
     done
 fi
 #rm $1/*.mgc $2/*.mgc

@@ -1,3 +1,4 @@
+#!/bin/bash
 . binaries.sh
 raw=$1
 base=`basename $raw` \

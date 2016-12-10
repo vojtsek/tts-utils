@@ -36,7 +36,7 @@ def process_flite(text, d):
 
 
 def process_cere(text, d, out=None):
-    print('processing "{}" with cereproc'.format(text))
+    # print('processing "{}" with cereproc'.format(text))
     output = out if out is not None else join(d, create_fn(text))
     with open('tmp.trn', "w") as f:
         f.write(text)

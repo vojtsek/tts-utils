@@ -1,3 +1,4 @@
+#!/bin/bash
 # arguments: natural_recordings/ synthetic_recordings/
 BIN_PATH="sptk/bin"
 FRAMELEN=300
@@ -43,5 +44,4 @@ else
         echo "$fn,${MCD}" >> $RESULTFILE
     done
 fi
-#rm $1/*.mgc $2/*.mgc
 echo "Results written to '$RESULTFILE'"

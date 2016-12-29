@@ -16,10 +16,10 @@ def ipa_lookup(ipa_map, phoneme):
     stress = phoneme[-1]
     print(stress)
     if stress.isdigit():
-        if stress == '1':
-            prefix = 'ˈ'
-        elif stress == 2:
-            prefix = 'ˌ'
+        #if stress == '1':
+        #    prefix = 'ˈ'
+        #elif stress == 2:
+        #    prefix = 'ˌ'
         phoneme = phoneme[:-1]
     logging.debug('Looking up "%s"', phoneme)
     print(prefix, phoneme)

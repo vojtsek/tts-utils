@@ -34,8 +34,8 @@ if __name__ == '__main__':
     dirs = [d for d in os.listdir(wd) if os.path.isdir(os.path.join(wd, d))]
     res_fn = 'mcd.out'
     for pair in itertools.combinations(dirs, 2):
-        if not (pair[0] == "svox" or pair[1] == "svox"):
-            continue
+        #if not (pair[0] == "svox" or pair[1] == "svox"):
+        #    continue
         print('Processing "{}" vs "{}"'.format(pair[0], pair[1]))
         # extract_lf0(os.path.join(wd, pair[0]))
         # extract_lf0(os.path.join(wd, pair[1]))

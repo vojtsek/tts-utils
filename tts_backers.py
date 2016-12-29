@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import os
+import numpy as np
 import subprocess
 from os.path import join
 import pandas as pd
@@ -91,8 +92,11 @@ if __name__ == '__main__':
     fn = sys.argv[1]
     output = sys.argv[2]
     engines = sys.argv[3:]
-    dataset = pd.read_csv(fn, delimiter=',')
-    data = dataset.values[:, 4]
+    dataset = pd.read_csv(fn, delimiter=',', header=None)
+    # data = dataset.values[:, 4]
+    data = dataset.values[:, 0]
+    perm = np.random.permutation(len(data))
+    data = data[perm[:1500]]
     create_dir(output)
     for eng in engines:
         create_dir(join(output, eng))

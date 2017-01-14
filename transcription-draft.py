@@ -61,4 +61,5 @@ logging.info('Transcribed as: "%s"', "".join(ipa_phonemes))
 ph_buffer = StringIO()
 create_ssml(ipa_phonemes, ph_buffer)
 
+print(ph_buffer.getvalue())
 process_cere(ph_buffer.getvalue(), '.', 'out.wav')

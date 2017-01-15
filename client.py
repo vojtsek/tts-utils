@@ -65,11 +65,14 @@ if __name__ == '__main__':
         key_f = lambda x: str2lst(x['confidence'])[-1]
     else:
         key_f = lambda x: float(x['confidence'])
-    trns = sorted(trns, key=key_f, reverse=True)
+    trns = sorted(trns, key=key_f)
+    jfn = os.path.basename(wavfile).split('.')[0]
+    with open('test-results/svox/{}.json'.format(jfn), 'w') as f:
+        json.dump(trns, f)
     for trn in trns:
         print(trn)
         r = make_post_request('synthesize', {'trn': trn['transcription']})
-        with open(ofile, 'wb') as fd:
-            for chunk in r.iter_content(chunk_size=128):
-                fd.write(chunk)
+        #with open(ofile, 'wb') as fd:
+        #    for chunk in r.iter_content(chunk_size=128):
+        #        fd.write(chunk)
         play(ofile)

@@ -12,6 +12,9 @@ split3 = 25
 class SavedResults:
 
     def __init__(self, data, mean_data, std_data, name):
+        data = np.array([data])
+        mean_data = np.array([mean_data])
+        std_data = np.array([std_data])
         self.data = np.concatenate((data, mean_data, std_data), axis=0)
         name_set = set([n.rstrip('.mgc') for n in name.split('_') if n not in ('vs', 'clean', 'flag')])
         self.name = '_'.join(list(name_set))

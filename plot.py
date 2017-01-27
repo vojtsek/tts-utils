@@ -6,9 +6,9 @@ import numpy as np
 import glob
 import matplotlib.pyplot as plt
 
-split1 = 13
-split2 = 18
-split3 = 25
+split1 = 0.2
+split2 = 0.3
+split3 = 0.45
 class SavedResults:
 
     def __init__(self, data, mean_data, std_data, name):
@@ -20,11 +20,19 @@ class SavedResults:
         return self.data
 
     def get_name(self):
-        print(self.name)
         return self.name
 
     def get_by_fn(self, fn):
-        return self.data[self.data[:,0] == fn][0]
+        fn = fn.split('.')
+        if len(fn) > 0:
+            fn = fn[:-1]
+        fn = '.'.join(fn).lstrip()
+        if fn.startswith('16k_'):
+            fn = fn[4:]
+        for i in range(self.data.T.shape[0]):
+            if fn in self.data.T[i,:][0]:
+                return self.data.T[i, :]
+        return None
 
 def get_color(mean, std):
     if (mean < split1):
@@ -43,7 +51,7 @@ def create_link(engine, fn, page, mean, std):
     if len(fn) > 1:
         fn = fn[:-1]
     fn = '.'.join(fn)
-    page += '[{}] <a style="color:{};" href={}/{}.wav>{}</a>&nbsp;'.format(mean, color, engine, fn, engine)
+    page += '<a style="color:{};" href=backers/{}/{}.wav>{}</a>&nbsp;'.format(color, engine, fn, engine)
     return page
 
 def plot_one_recording(fn, dumpdir):
@@ -69,6 +77,11 @@ def plot_one_recording(fn, dumpdir):
     plt.tight_layout()
     plt.show()
 
+def get_split(d, p):
+    d = sorted(d)
+    idx = int(len(d) * p)
+    return d[idx]
+
 def process_data(name_data, mean_data, std_data, dirname, files, outname):
     saved_data = SavedResults(name_data, mean_data, std_data, '_'.join(files))
     if not os.path.isdir(dirname):
@@ -76,23 +89,23 @@ def process_data(name_data, mean_data, std_data, dirname, files, outname):
     with open('{}/{}'.format(dirname, saved_data.get_name()), 'wb') as f:
         pickle.dump(saved_data, f)
 
+    split1 = get_split(mean_data, 0.05)
+    split2 = get_split(mean_data, 0.5)
+    split3 = get_split(mean_data, 0.95)
     page = '<html><body>'
     for fn, mean, std in zip(name_data, mean_data, std_data):
-    #    print(fn[0], end=' ')
-    #    print(val)
-        page += fn + '&nbsp;'
+        page += '{} [{}]&nbsp;'.format(fn, mean)
         for eng in ['cere', 'flite', 'svox', 'mary', 'gtts']:
             page = create_link(eng, fn, page, mean, std)
         page += '<br />'
     page += '</body></html>'
     with open('{}.html'.format(outname), 'w') as f:
         f.write(page)
-    plt.hist(mean_data, bins=70, range=(10,40), alpha=.3, color='gray')
+    plt.hist(mean_data, bins=70,  alpha=.3, color='gray')
     plt.axvline(x=split1, ymin=0, ymax=500, linewidth=3, color='green')
     plt.axvline(x=split2, ymin=0, ymax=500, linewidth=3, color='pink')
     plt.axvline(x=split3, ymin=0, ymax=500, linewidth=3, color='red')
-    #plt.show()
-    print(fn)
+    plt.show()
     plt.close()
 
 if __name__ == '__main__':

@@ -1,1 +1,1 @@
-../Angee/cereproc-tts-utils/txt2wav.py
+../cereproc-tts-utils/txt2wav.py

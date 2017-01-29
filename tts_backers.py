@@ -11,7 +11,8 @@ def process_gtts(text, d):
     from gtts import gTTS
     print('processing "{}" with gTTS'.format(text))
     tts = gTTS(text=text, lang='en')
-    tts.save(join(d, create_fn(text, 'mp3')))
+    #tts.save(join(d, create_fn(text, 'mp3')))
+    tts.save(d)
 
 
 def process_svox(text, d):
@@ -89,16 +90,21 @@ def process_engine(engine, data, output):
 
 
 if __name__ == '__main__':
-    fn = sys.argv[1]
-    output = sys.argv[2]
-    engines = sys.argv[3:]
-    dataset = pd.read_csv(fn, delimiter=',', header=None)
-    # data = dataset.values[:, 4]
-    data = dataset.values[:, 0]
-    perm = np.random.permutation(len(data))
-    data = data[perm[:1500]]
-    create_dir(output)
-    for eng in engines:
-        create_dir(join(output, eng))
-        process_engine(eng, data, output)
+    if len(sys.argv) == 3:
+        with open(sys.argv[1], 'r') as f:
+            text=f.read()
+            process_gtts(text, sys.argv[2])
+    else:
+        fn = sys.argv[1]
+        output = sys.argv[2]
+        engines = sys.argv[3:]
+        dataset = pd.read_csv(fn, delimiter=',', header=None)
+        # data = dataset.values[:, 4]
+        data = dataset.values[:, 0]
+        perm = np.random.permutation(len(data))
+        data = data[perm[:1500]]
+        create_dir(output)
+        for eng in engines:
+            create_dir(join(output, eng))
+            process_engine(eng, data, output)
 

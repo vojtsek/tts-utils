@@ -28,7 +28,9 @@ def process_file(fn, data):
     all_trns = []
     for record in get_data_for_filename(fn, data):
         trns = list(map(lambda x: x['transcription'], json.loads(record[2])))
-        all_trns.extend(trns)
+        if len(trns) <= 0:
+            return None
+        all_trns.append(trns[0])
 
     combs = []
     denom = np.log(len(fn)) + 1
@@ -44,7 +46,9 @@ def process_file(fn, data):
 def process_all(all_files, data):
     res = []
     for fn in all_files:
-        res.append((fn, *process_file(fn, data)))
+        processed = process_file(fn, data)
+        if processed is not None:
+            res.append((fn, *processed))
     return res
 
 if __name__ == '__main__':

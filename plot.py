@@ -27,17 +27,20 @@ class SavedResults:
 
     def get_by_fn(self, fn):
         fn = fn.split('.')
-        if len(fn) > 0:
+        if len(fn) > 1:
             fn = fn[:-1]
         fn = '.'.join(fn).lstrip()
         if fn.startswith('16k_'):
             fn = fn[4:]
         for i in range(self.data.T.shape[0]):
+
             if fn in self.data.T[i,:][0]:
+                print(self.data.T[i,:])
                 return self.data.T[i, :]
         return None
 
 def get_color(mean, std):
+    mean = float(mean)
     if (mean < split1):
         return "green"
     elif (mean < split2):
@@ -57,25 +60,39 @@ def create_link(engine, fn, page, mean, std):
     page += '<a style="color:{};" href=backers/{}/{}.wav>{}</a>&nbsp;'.format(color, engine, fn, engine)
     return page
 
-def plot_one_recording(fn, dumpdir):
-    means = []
+def plot_two_recordings(fn1, fn2, dumpdir):
+    means1 = []
     fns = []
-    stds = []
+    stds1 = []
+    means2 = []
+    stds2 = []
     b_width = 0.3
     for dump in glob.glob('{}/*'.format(dumpdir)):
-        fns.append(dump.lstrip('dump/'))
+        fns.append(dump[2:])
         with open(dump, 'rb') as f:
             data = pickle.load(f)
-            dfn = data.get_by_fn(fn)
-            means.append(float(dfn[1]))
-            stds.append(float(dfn[2]))
+            dfn1 = data.get_by_fn(fn1)
+            dfn2 = data.get_by_fn(fn2)
+            means1.append(float(dfn1[1]))
+            stds1.append(float(dfn1[2]))
+            means2.append(float(dfn2[1]))
+            stds2.append(float(dfn2[2]))
+    tr_fns = list(map(lambda x: len(x.split('_')), fns))
+    sortperm = np.argsort(tr_fns)
+    fns = list(map(lambda x: x.replace('_','\n'), fns))
+    fns = np.array(fns)[sortperm]
+    means1 = np.array(means1)[sortperm]
+    means2 = np.array(means2)[sortperm]
+    stds1 = np.array(stds1)[sortperm]
+    stds2 = np.array(stds2)[sortperm]
     index = np.arange(len(fns))
-    plt.bar(index, means, b_width, color='blue', alpha=0.5, align='center', yerr=stds, label='MCD')
+    plt.bar(index, means1, b_width, color='blue', alpha=0.5, align='center', yerr=stds1, label=fn1)
+    plt.bar(index + b_width, means2, b_width, color='red', alpha=0.5, align='center', yerr=stds2, label=fn2)
     plt.xlabel('Engines used')
-    plt.ylabel('MCD')
-    plt.title('MCD value of \'{}\' for particular settings'.format(fn))
-    plt.xticks(index, fns)
-    plt.legend()
+    plt.ylabel('M1')
+    plt.title('M1 values of \'{}\' and \'{}\' for combinations of engines'.format(fn1, fn2))
+    plt.xticks(index, fns, fontsize=18)
+    plt.legend(fontsize=18)
 
     plt.tight_layout()
     plt.show()
@@ -111,5 +128,48 @@ def process_data(name_data, mean_data, std_data, dirname, files, outname):
     plt.show()
     plt.close()
 
+    plt.plot(np.arange(len(mean_data)), mean_data)
+    plt.show()
+
+def get_idx_of(n, data):
+    return np.where(n == data)[0]
+
 if __name__ == '__main__':
-    fn = sys.argv[1]
+    fn1 = sys.argv[1]
+    fn2 = sys.argv[2]
+    dumpdir = sys.argv[3]
+    with open(fn1, 'rb') as f:
+        data1 = pickle.load(f).get_data().T
+        length1 = int(data1.shape[0] / 3)
+        fn1 = data1[0:length1]
+        fn1 = fn1
+        mean1 = data1[length1:2*length1]
+        mean1 = mean1
+    sort_perm = []
+    with open(fn2, 'rb') as f:
+        data2 = pickle.load(f).get_data().T
+        length2 = int(data2.shape[0] / 3)
+        tmp_fn2 = data2[0:length2]
+        tmp_mean2 = data2[length2:2*length2]
+        fn2 = []
+        mean2 = []
+        for i in range(length2):
+            tmp = '16k_' + tmp_fn2[i] + '.mgc' 
+            if tmp in fn1:
+                fn2.append(tmp_fn2[i])
+                mean2.append(tmp_mean2[i])
+                sort_perm.append(get_idx_of(tmp, fn1))
+    mean1 = np.array(mean1, dtype='float32')
+    fn1 = np.array(fn1[:-5])
+    perm1 = np.argsort(mean1)
+    perm2 = np.argsort(mean2)
+    mean1 = np.array(mean1)[perm1]
+    mean1 = mean1[:-5]
+    fn2 = np.array(fn2[:-5])
+    mean2 = np.array(mean2)[sort_perm]
+    mean2 = mean2[:-5]
+    print(len(mean1), len(mean2))
+    plt.plot(np.arange(length1-5), mean2)
+    plt.plot(np.arange(length1-5), mean1)
+    plt.show()
+    #plot_two_recordings(fn1, fn2, dumpdir)

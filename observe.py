@@ -52,5 +52,5 @@ if __name__ == '__main__':
     stats_data_mean = np.array(stats_data_mean)
     sort_perm_mean = np.argsort(stats_data_mean[:, 0], axis=0)
     sort_perm_std = np.argsort(stats_data_mean[:, 1], axis=0)
-    process_data(stats_data[sort_perm_mean, 0], stats_data_mean[sort_perm_mean, 0], stats_data_mean[sort_perm_mean, 1], 'mgc-dump', files, 'results-mgc')
+    process_data(stats_data[sort_perm_mean, 0][:-5], stats_data_mean[sort_perm_mean, 0][:-5], stats_data_mean[sort_perm_mean, 1][:-5], 'mgc-dump', files, 'results-mgc')
 

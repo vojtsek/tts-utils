@@ -29,24 +29,25 @@ content = ''
 with open(trnfile, 'r') as f:
     content = f.read()
 trn = content.split('\n')[0]
-pos = 0
-ipatrn = ''
-while pos < len(trn):
-    char = trn[pos:pos+2]
-    if char in cng2ipa:
-        ipatrn += cng2ipa[char] + ' '
-        pos += 2
-    else:
-        char = trn[pos]
-        pos += 1
-        if ignore(char):
-            continue
-        elif char == ' ':
-            #ipatrn += ' SIL '
-            pass
-        else:
+for trn in content.split('\n'):
+    pos = 0
+    ipatrn = ''
+    while pos < len(trn):
+        char = trn[pos:pos+2]
+        if char in cng2ipa:
             ipatrn += cng2ipa[char] + ' '
+            pos += 2
+        else:
+            char = trn[pos]
+            pos += 1
+            if ignore(char):
+                continue
+            elif char == ' ':
+                #ipatrn += ' SIL '
+                pass
+            else:
+                ipatrn += cng2ipa[char] + ' '
 
-with open(trnfile + '.ipa', 'w') as f:
-    f.write(ipatrn + '\n')
-    create_ssml(ipatrn, f)
+    with open(trnfile + '.ipa', 'a') as f:
+        f.write(ipatrn + '\n')
+    #create_ssml(ipatrn, f)

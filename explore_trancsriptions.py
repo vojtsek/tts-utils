@@ -66,6 +66,7 @@ if __name__ == '__main__':
             get_transcriptions_for_recording(fn, data, directory)
 
     data = np.array(data)
-    res = sorted(process_all(all_files, data), key=lambda x: x[1])
-    process_data(unzip(res, 0), unzip(res, 1), unzip(res, 2), 'trn-dump', dirs, 'results-trns')
+    #res = sorted(process_all(all_files, data), key=lambda x: x[1])
+    res = process_all(all_files, data)
+    process_data(unzip(res, 0), unzip(res, 1), unzip(res, 2), 'trn-dump-unsorted', dirs, 'results-trns')
 

@@ -25,18 +25,20 @@ class SavedResults:
     def get_name(self):
         return self.name
 
-    def get_by_fn(self, fn):
+    def get_by_fn(self, fn, transposed=False):
         fn = fn.split('.')
         if len(fn) > 1:
             fn = fn[:-1]
         fn = '.'.join(fn).lstrip()
         if fn.startswith('16k_'):
             fn = fn[4:]
-        for i in range(self.data.T.shape[0]):
-
-            if fn in self.data.T[i,:][0]:
-                print(self.data.T[i,:])
-                return self.data.T[i, :]
+        if transposed:
+            data = self.data.T
+        else:
+            data = self.data
+        for i in range(data.shape[0]):
+            if fn in data[i,:][0]:
+                return data[i, :]
         return None
 
 def get_color(mean, std):
@@ -59,6 +61,28 @@ def create_link(engine, fn, page, mean, std):
     fn = '.'.join(fn)
     page += '<a style="color:{};" href=backers/{}/{}.wav>{}</a>&nbsp;'.format(color, engine, fn, engine)
     return page
+
+def get_MCD_for_name_for_synth(fn, dumpdir):
+    pairs = []
+    all_synth = None
+    for dump in glob.glob('{}/*'.format(dumpdir)):
+        with open(dump, 'rb') as f:
+            sp = [fn.strip('./') for fn in dump.split('_')]
+            l = len(sp)
+            if l == 3:
+                continue
+            data = pickle.load(f)
+            dfn = data.get_by_fn(fn)
+            mean = float(dfn[1])
+            std = float(dfn[2])
+            if l == 2:
+                pairs.append((sp, mean))
+            if l == 4:
+                all_synth = mean
+    for eng in ['mary','svox','gtts','cere']:
+        s = sum([p[1] for p in pairs if eng not in p[0]]) / (len(pairs) - 3)
+        print('Without {}: {}'.format(eng, s))
+    print(sum([p[1] for p in pairs]) / len(pairs), all_synth)
 
 def plot_two_recordings(fn1, fn2, dumpdir):
     means1 = []
@@ -102,7 +126,7 @@ def get_split(d, p):
     idx = int(len(d) * p)
     return d[idx]
 
-def process_data(name_data, mean_data, std_data, dirname, files, outname):
+def process_data(name_data, mean_data, std_data, dirname, files, outname, plot=True):
     saved_data = SavedResults(name_data, mean_data, std_data, '_'.join(files))
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
@@ -121,55 +145,70 @@ def process_data(name_data, mean_data, std_data, dirname, files, outname):
     page += '</body></html>'
     with open('{}.html'.format(outname), 'w') as f:
         f.write(page)
-    plt.hist(mean_data, bins=70,  alpha=.3, color='gray')
-    plt.axvline(x=split1, ymin=0, ymax=500, linewidth=3, color='green')
-    plt.axvline(x=split2, ymin=0, ymax=500, linewidth=3, color='pink')
-    plt.axvline(x=split3, ymin=0, ymax=500, linewidth=3, color='red')
-    plt.show()
-    plt.close()
+    if plot:
+        plt.hist(mean_data, bins=70,  alpha=.3, color='gray')
+        plt.axvline(x=split1, ymin=0, ymax=500, linewidth=3, color='green')
+        plt.axvline(x=split2, ymin=0, ymax=500, linewidth=3, color='pink')
+        plt.axvline(x=split3, ymin=0, ymax=500, linewidth=3, color='red')
+        plt.show()
+        plt.close()
 
-    plt.plot(np.arange(len(mean_data)), mean_data)
-    plt.show()
+        plt.plot(np.arange(len(mean_data)), mean_data)
+        plt.show()
 
 def get_idx_of(n, data):
     return np.where(n == data)[0]
+
+def plot_data(fn1, fn2):
+    with open(fn1, 'rb') as f:
+        data1 = pickle.load(f).get_data().T
+        #length1 = int(data1.shape[0] / 3)
+        #fn1 = data1[0:length1]
+        #mean1 = data1[length1:2*length1]
+        fn1 = data1[:,0]
+        mean1 = np.array(data1[:,1], dtype='float32')
+    sort_perm = []
+    with open(fn2, 'rb') as f:
+        data2 = pickle.load(f).get_data().T
+        #length2 = int(data2.shape[0] / 3)
+        #tmp_fn2 = data2[0:length2]
+        #tmp_mean2 = data2[length2:2*length2]
+        fn2 = np.array(['16k_' + fn + '.mgc' for fn in data2[:,0]])
+        mean2 = np.array(data2[:,1], dtype='float32')
+    all_fn = list(set(fn1).intersection(set(fn2)))
+    f1 = []
+    m1 = []
+    f2 = []
+    m2 = []
+    for i in range(len(all_fn)):
+        f1.append(all_fn[i])
+        f2.append(all_fn[i])
+        idx = get_idx_of(all_fn[i], fn1)
+        idx2 = get_idx_of(all_fn[i], fn2)
+        m1.append(mean1[idx][0])
+        m2.append(mean2[idx2][0])
+        sort_perm.append(idx)
+    mean1 = np.array(m1, dtype='float32').T
+    mean2 = np.array(m2, dtype='float32').T
+    mean1 = mean1 / max(mean1)
+    mean2 = mean2 / max(mean2)
+    fn1 = np.array(f1[:-5])
+    perm1 = np.argsort(mean1)
+    perm2 = np.argsort(mean2)
+    mean1 = mean1[perm1]
+    mean1 = mean1[:-5]
+    fn2 = np.array(f2[:-5])
+    mean2 = mean2[perm1]
+    mean2 = mean2[:-5]
+    print(len(mean1), len(mean2))
+    plt.plot([i for i in range(0, mean1.shape[0], 4)], [sum(mean2[i:i+4])/4 for i in range(0, mean1.shape[0], 4)], linewidth=.2)
+    plt.plot(np.arange(mean1.shape[0]), mean1, linewidth=3)
+    plt.show()
 
 if __name__ == '__main__':
     fn1 = sys.argv[1]
     fn2 = sys.argv[2]
     dumpdir = sys.argv[3]
-    with open(fn1, 'rb') as f:
-        data1 = pickle.load(f).get_data().T
-        length1 = int(data1.shape[0] / 3)
-        fn1 = data1[0:length1]
-        fn1 = fn1
-        mean1 = data1[length1:2*length1]
-        mean1 = mean1
-    sort_perm = []
-    with open(fn2, 'rb') as f:
-        data2 = pickle.load(f).get_data().T
-        length2 = int(data2.shape[0] / 3)
-        tmp_fn2 = data2[0:length2]
-        tmp_mean2 = data2[length2:2*length2]
-        fn2 = []
-        mean2 = []
-        for i in range(length2):
-            tmp = '16k_' + tmp_fn2[i] + '.mgc' 
-            if tmp in fn1:
-                fn2.append(tmp_fn2[i])
-                mean2.append(tmp_mean2[i])
-                sort_perm.append(get_idx_of(tmp, fn1))
-    mean1 = np.array(mean1, dtype='float32')
-    fn1 = np.array(fn1[:-5])
-    perm1 = np.argsort(mean1)
-    perm2 = np.argsort(mean2)
-    mean1 = np.array(mean1)[perm1]
-    mean1 = mean1[:-5]
-    fn2 = np.array(fn2[:-5])
-    mean2 = np.array(mean2)[sort_perm]
-    mean2 = mean2[:-5]
-    print(len(mean1), len(mean2))
-    plt.plot(np.arange(length1-5), mean2)
-    plt.plot(np.arange(length1-5), mean1)
-    plt.show()
-    #plot_two_recordings(fn1, fn2, dumpdir)
+    # plot_data(fn1, fn2)
+    get_MCD_for_name_for_synth(fn1, dumpdir)
+    plot_two_recordings(fn1, fn2, dumpdir)

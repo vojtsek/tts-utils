@@ -7,7 +7,7 @@ import pandas as pd
 from plot import SavedResults, process_data
 from sklearn.linear_model import LinearRegression
 
-def correlation(vec1, vec2, title='', x='', y=''):
+def correlation(vec1, vec2, title='', x='', y='', color='b'):
     vec1 = np.array(vec1)
     vec2 = np.array(vec2)
     data1_mean = np.mean(vec1)
@@ -19,17 +19,17 @@ def correlation(vec1, vec2, title='', x='', y=''):
     std1 = np.std(vec1)
     std2 = np.std(vec2)
     corr = covariance / (std1*std2)
-    print('Correlation: {}'.format(corr)) 
+    print(corr)
     regr = LinearRegression()
     regr.fit(vec1.reshape(vec1.shape[0], 1), vec2.reshape(vec2.shape[0], 1))
-    plt.scatter(vec1, vec2, s=7)
-    xx = [i/100 for i in range(35, 111)]
+    plt.scatter(vec1, vec2, s=30, color=color)
+    xx = [i/100 for i in range(5, 111)]
     yy = [regr.predict(z)[0] for z in xx]
     plt.plot(xx, yy)
     plt.xlabel(x, fontsize=18)
     plt.ylabel(y, fontsize=18)
     plt.title(title, fontsize=18)
-    plt.show()
+    plt.savefig("corr.png")
 
 if __name__ == '__main__':
     file1 = sys.argv[1]

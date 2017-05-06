@@ -16,6 +16,7 @@ def ignore(char):
 
 
 cng2ipa = {}
+<<<<<<< HEAD
 mapfile = 'cng2ipa.tsv'
 if len(sys.argv) > 2:
     mapfile = sys.argv[2]
@@ -23,10 +24,17 @@ with open(mapfile, 'r') as f:
     for line in f:
         sp = line.strip().split('\t')
         cng2ipa[sp[0]] = sp[1]
+=======
+with open(sys.argv[2], 'r') as f:
+    for line in f:
+        sp = line.split('\t')
+        cng2ipa[sp[0]] = sp[1].strip()
+>>>>>>> 6de27918b42d74c905c67eebf0a5c7c0597fdcbb
 
 trnfile = sys.argv[1]
 content = ''
 with open(trnfile, 'r') as f:
+<<<<<<< HEAD
     content = f.read()
 trn = content.split('\n')[0]
 for trn in content.split('\n'):
@@ -51,3 +59,12 @@ for trn in content.split('\n'):
     with open(trnfile + '.ipa', 'a') as f:
         f.write(ipatrn + '\n')
     #create_ssml(ipatrn, f)
+=======
+    for line in f:
+        line = line.strip()
+        if len(line) < 1:
+            continue
+        for ph in line.split():
+            sys.stdout.write(cng2ipa[ph] + ' ')
+        sys.stdout.write('\n')
+>>>>>>> 6de27918b42d74c905c67eebf0a5c7c0597fdcbb

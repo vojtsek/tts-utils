@@ -2,14 +2,18 @@
 import sys
 
 cng2ipa = {}
-with open('cng2ipa.tsv', 'r') as f:
+with open(sys.argv[2], 'r') as f:
     for line in f:
         sp = line.split('\t')
-        cng2ipa[sp[0]] = sp[1]
+        cng2ipa[sp[0]] = sp[1].strip()
 
 trnfile = sys.argv[1]
 content = ''
 with open(trnfile, 'r') as f:
-    content = f.read()
-content = content.split('\n')[-1]
-print(content)
+    for line in f:
+        line = line.strip()
+        if len(line) < 1:
+            continue
+        for ph in line.split():
+            sys.stdout.write(cng2ipa[ph] + ' ')
+        sys.stdout.write('\n')

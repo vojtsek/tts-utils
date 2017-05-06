@@ -21,10 +21,10 @@ def obtain_frames(dirname, fn):
 
 if __name__ == '__main__':
     all_data = np.zeros((0, 3))
+    plot=False
     files = sys.argv[1:]
     # assuming all files in the same directory
     dirname = os.path.dirname(files[0])
-    print(dirname)
     for csvf in files:
         data = pandas.read_csv(csvf, header=None)
         fns = np.array([[csvf] for _ in range(data.shape[0])])
@@ -43,7 +43,7 @@ if __name__ == '__main__':
        mean = np.mean(f_data[:, 2])
        std = np.std(f_data[:, 2])
        stats_data.append([f])
-       stats_data_mean.append([float(mean) / np.log(obtain_frames(dirname, f)), std])
+       stats_data_mean.append([float(mean), std])
        # means.extend([mean for _ in range(f_data.shape[0])])
        # stds.extend([std] * f_data.shape[0])
     # all_data = np.concatenate((all_data, np.array([means]).T), axis=1)
@@ -52,5 +52,5 @@ if __name__ == '__main__':
     stats_data_mean = np.array(stats_data_mean)
     sort_perm_mean = np.argsort(stats_data_mean[:, 0], axis=0)
     sort_perm_std = np.argsort(stats_data_mean[:, 1], axis=0)
-    process_data(stats_data[sort_perm_mean, 0][:-5], stats_data_mean[sort_perm_mean, 0][:-5], stats_data_mean[sort_perm_mean, 1][:-5], 'mgc-dump', files, 'results-mgc')
+    process_data(stats_data[sort_perm_mean, 0][:], stats_data_mean[sort_perm_mean, 0][:], stats_data_mean[sort_perm_mean, 1][:], 'mgc-dump', files, 'results-mgc', plot=plot)
 

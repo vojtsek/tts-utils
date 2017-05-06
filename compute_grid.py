@@ -8,7 +8,7 @@ import glob
 
 
 def extract_lf0(directory):
-    for fn in glob.glob(os.path.join(directory, '16k_*.wav')):
+    for fn in glob.glob(os.path.join(directory, '*.wav')):
         base = '.'.join(fn.split('.')[:-1])
         if os.path.exists('{}.lf0'.format(base)):
             continue
@@ -16,9 +16,10 @@ def extract_lf0(directory):
 
 
 def extract_mcep(directory):
-    if len(glob.glob(os.path.join(directory, '16k_*.mgc'))) > 0:
+    if len(glob.glob(os.path.join(directory, '*.mgc'))) > 0:
         return
-    for fn in glob.glob(os.path.join(directory, '16k_*.wav')):
+    print(directory)
+    for fn in glob.glob(os.path.join(directory, '*.wav')):
         base = '.'.join(fn.split('.')[:-1])
         if os.path.exists('{}.mgc'.format(base)):
             continue
@@ -37,15 +38,15 @@ if __name__ == '__main__':
         #if not (pair[0] == "svox" or pair[1] == "svox"):
         #    continue
         print('Processing "{}" vs "{}"'.format(pair[0], pair[1]))
-        # extract_lf0(os.path.join(wd, pair[0]))
-        # extract_lf0(os.path.join(wd, pair[1]))
+        #extract_lf0(os.path.join(wd, pair[0]))
+        #extract_lf0(os.path.join(wd, pair[1]))
         extract_mcep(os.path.join(wd, pair[0]))
         extract_mcep(os.path.join(wd, pair[1]))
         if os.path.exists(res_fn):
             os.remove(res_fn)
-        # cmd = ['./compute_lf0se.sh', os.path.join(wd, pair[0]), os.path.join(wd, pair[1])]
+        #cmd = ['./compute_lf0se.sh', os.path.join(wd, pair[0]), os.path.join(wd, pair[1])]
         cmd = ['./compute_mcd.sh', os.path.join(wd, pair[0]), os.path.join(wd, pair[1])]
         print(cmd)
         subprocess.call(cmd)
-        # shutil.copyfile(res_fn, os.path.join(wd, '{}_vs_{}.lf0'.format(pair[0], pair[1])))
+        #shutil.copyfile(res_fn, os.path.join(wd, '{}_vs_{}.lf0'.format(pair[0], pair[1])))
         shutil.copyfile(res_fn, os.path.join(wd, '{}_vs_{}.mgc'.format(pair[0], pair[1])))

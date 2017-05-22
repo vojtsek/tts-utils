@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.decomposition import PCA
 import editdistance as ed
 import itertools
 import pickle
@@ -23,11 +24,16 @@ class Dataset:
         self.data_X = None
         self.data_Y = None
         bigrs = []
+        trigrs = []
         for comb in itertools.product(used_ipa, repeat=2):
             bigrs.append(comb[0] + comb[1])
+        for comb in itertools.product(used_ipa, repeat=3):
+            trigrs.append(comb[0] + comb[1] + comb[2])
         bigrs = set(bigrs)
+        trigrs = set(trigrs)
         self.unigram_map = {y: x for x,y in list(enumerate(used_ipa))}
         self.bigram_map = {y: (x + len(used_ipa)) for x, y in list(enumerate(bigrs))}
+        self.trigram_map = {y: (x + len(used_ipa) + len(bigrs)) for x, y in list(enumerate(trigrs))}
         self.batch_size = batch_size
         self.idx = 0
         self.length = length
@@ -35,6 +41,18 @@ class Dataset:
         self.train_size = int(train_q * length)
         np.random.seed(42)
         self.perm = np.random.permutation(self.train_size)
+
+    def get_original_gold(self, size=100):
+        perm = np.random.permutation(self.length)
+        with open(self.dataset_path, "rb") as f:
+                utterances = pickle.load(f)
+        i=0
+        output = []
+        utterances = np.array(utterances)
+        for utt in utterances[perm[:size]]:
+            output.append((utt.gold_trn, utt.gold_orig, utt.hypothesis[self.compute_gold_idx(utt.hypothesis, utt.gold_trn)]))
+
+        return output
 
     def load_data(self, size, pickled_data=None, include_gold=False, save=False):
         if pickled_data is not None:
@@ -57,6 +75,11 @@ class Dataset:
             with open("dataset_binary.dump", "wb") as f:
                 pickle.dump((self.data_X, self.data_Y), f)
 
+        # pca = PCA(n_components=9000)
+        # print(self.data_X.shape)
+        # pca.fit(self.data_X)
+        # self.data_X = pca.transform(self.data_X)
+        # print(self.data_X.shape)
         self.train_X, self.train_Y = self.data_X[:self.train_size], self.data_Y[:self.train_size]
         self.valid_X, self.valid_Y = self.data_X[self.train_size:self.length], self.data_Y[self.train_size:self.length]
 
@@ -69,7 +92,9 @@ class Dataset:
     def vectorize_utt(self, utt, size, include_gold):
         acc = None
         transcriptions = np.array(utt.hypothesis)[:size]
-        perm = range(len(transcriptions))
+        perm = np.random.permutation(len(transcriptions))
+        # perm = range(len(transcriptions))
+
         if include_gold:
             transcriptions = np.concatenate((transcriptions[:(size-1)],[utt.gold_trn]))
             perm = np.random.permutation(size)
@@ -77,8 +102,10 @@ class Dataset:
         transcriptions = np.concatenate((transcriptions[perm], [utt.gold_orig]))
 
         for trn in transcriptions:
-            vec = np.zeros(len(self.unigram_map) + len(self.bigram_map))
+            vec = np.zeros(len(self.unigram_map) + len(self.bigram_map) + len(self.trigram_map))
+            # vec = np.zeros(len(self.unigram_map) + len(self.bigram_map))
             last = None
+            butlast = None
             for b in trn.strip().lower():
                 if b not in used_ipa:
                     continue
@@ -88,6 +115,12 @@ class Dataset:
                     continue
                 bigr = last + b
                 vec[self.bigram_map[bigr]] += 1
+                if butlast is None:
+                    butlast = last
+                else:
+                    trigr = butlast + last + b
+                    vec[self.trigram_map[trigr]] += 1
+                    butlast = last
                 last = b
             if acc is None:
                 acc = vec
@@ -123,5 +156,11 @@ class Dataset:
 
 
 if __name__ == '__main__':
-    dataset = Dataset(dataset_path="dataset.dump")
-    dataset.load_data(save=True)
+    d = Dataset(length=2000, dataset_path="dataset.dump")
+    orig_golds = d.get_original_gold(100)
+    # d.load_data(size=4, include_gold=False)
+    # X, y = d.get_data()
+    # print(np.bincount(y)/len(y))
+    for (trn, orig, best) in orig_golds:
+        with open("transcriptions", "a") as f:
+            f.write("{} {} {}\n".format(trn, orig, best))

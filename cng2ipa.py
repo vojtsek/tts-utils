@@ -15,5 +15,5 @@ with open(trnfile, 'r') as f:
         if len(line) < 1:
             continue
         for ph in line.split():
-            sys.stdout.write(cng2ipa[ph] + ' ')
+            sys.stdout.write(cng2ipa[ph.strip('012')] + ' ')
         sys.stdout.write('\n')

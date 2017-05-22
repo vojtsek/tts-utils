@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.decomposition import PCA
 import editdistance as ed
 import itertools
 import pickle
@@ -44,6 +45,18 @@ class Dataset:
         np.random.seed(42)
         self.perm = np.random.permutation(self.train_size)
 
+    def get_original_gold(self, size=100):
+        perm = np.random.permutation(self.length)
+        with open(self.dataset_path, "rb") as f:
+                utterances = pickle.load(f)
+        i=0
+        output = []
+        utterances = np.array(utterances)
+        for utt in utterances[perm[:size]]:
+            output.append((utt.gold_trn, utt.gold_orig, utt.hypothesis[self.compute_gold_idx(utt.hypothesis, utt.gold_trn)]))
+
+        return output
+
     def load_data(self, size, pickled_data=None, include_gold=False, save=False):
         if pickled_data is not None:
             with open(pickled_data, "rb") as f:
@@ -65,6 +78,11 @@ class Dataset:
             with open("dataset_binary.dump", "wb") as f:
                 pickle.dump((self.data_X, self.data_Y), f)
 
+        # pca = PCA(n_components=9000)
+        # print(self.data_X.shape)
+        # pca.fit(self.data_X)
+        # self.data_X = pca.transform(self.data_X)
+        # print(self.data_X.shape)
         self.train_X, self.train_Y = self.data_X[:self.train_size], self.data_Y[:self.train_size]
         self.valid_X, self.valid_Y = self.data_X[self.train_size:(self.train_size + self.valid_size)], self.data_Y[self.train_size:(self.train_size + self.valid_size)]
         self.test_X, self.test_Y = self.data_X[(self.train_size + self.valid_size):self.length], self.data_Y[(self.train_size + self.valid_size):self.length]
@@ -78,8 +96,8 @@ class Dataset:
     def vectorize_utt(self, utt, size, include_gold):
         acc = None
         transcriptions = np.array(utt.hypothesis)[:size]
-        perm = range(len(transcriptions))
         perm = np.random.permutation(len(transcriptions))
+        # perm = range(len(transcriptions))
         if include_gold:
             transcriptions = np.concatenate((transcriptions[:(size-1)],[utt.gold_trn]))
             perm = np.random.permutation(size)
@@ -151,4 +169,3 @@ if __name__ == '__main__':
     dataset.load_data(size=4, include_gold=False, save=False)
     X,y = dataset.get_data()
     print(np.bincount(y)/len(y))
-

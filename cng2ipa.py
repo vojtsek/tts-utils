@@ -65,6 +65,6 @@ for trn in content.split('\n'):
         if len(line) < 1:
             continue
         for ph in line.split():
-            sys.stdout.write(cng2ipa[ph] + ' ')
+            sys.stdout.write(cng2ipa[ph.strip('012')] + ' ')
         sys.stdout.write('\n')
 >>>>>>> 6de27918b42d74c905c67eebf0a5c7c0597fdcbb

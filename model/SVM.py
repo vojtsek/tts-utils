@@ -3,6 +3,7 @@ import argparse
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from dataset import Dataset, Utterance
+import numpy as np
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--trigrams", action="store_true")
@@ -30,9 +31,12 @@ elif mdl == "svcr":
 elif mdl == "svcp":
     model = SVC(kernel="poly")
 elif mdl == "rf":
-    model = RandomForestClassifier(n_estimators=100)
+    model = RandomForestClassifier(n_estimators=1000)
 elif mdl == "lr":
     model = LogisticRegression()
+print(train_X.shape)
+X, y = d.get_data()
+print(np.bincount(y)/len(y))
 model.fit(train_X, train_y)
 valid_predictions = model.predict(valid_X)
 test_predictions = model.predict(test_X)

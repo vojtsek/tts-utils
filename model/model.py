@@ -39,7 +39,7 @@ l1_size = args.l
 # b2 = tf.Variable(initial_value=tf.random_uniform([no_classes], 0, 1), name="bias2", trainable=True)
 
 
-l1 = tf_layers.fully_connected(X, l1_size)
+l1 = tf.sigmoid(tf_layers.linear(X, l1_size))
 logits = tf_layers.linear(l1, no_classes)
 # softmax = tf.nn.softmax(logits)
 pred = tf.argmax(logits, axis=1)
@@ -69,10 +69,15 @@ with tf.Session() as sess:
             print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(c), "pred=", predictions)
 
         valid_X, valid_Y = d.get_valid()
+        train_X, train_Y = d.get_train()
         predictions, c = sess.run([pred, cost], feed_dict={X: valid_X, Y: valid_Y})
         print("Cost: {}, predictions: {}".format(c, predictions))
         diff = abs((valid_Y - predictions) != 0)
-        print(1 - ((sum(diff)) / len(diff)))
+        print("Valid: ", 1 - ((sum(diff)) / len(diff)))
+        predictions, c = sess.run([pred, cost], feed_dict={X: train_X, Y: train_Y})
+        print("Cost: {}, predictions: {}".format(c, predictions))
+        diff = abs((train_Y - predictions) != 0)
+        print("Train: ", 1 - ((sum(diff)) / len(diff)))
     print("Optimization Finished!")
     #
     # # Graphic display
